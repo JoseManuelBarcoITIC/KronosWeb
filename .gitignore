@@ -1,0 +1,18 @@
+# Python
+*.pyc
+__pycache__/
+
+# Entorno virtual
+.venv/
+env/
+ENV/
+
+# Django
+*.log
+*.pot
+*.pyc
+*.pyo
+*.sqlite3
+Barco/db.sqlite3
+/staticfiles/
+media/

@@ -8,9 +8,7 @@ class User(models.Model):
     surname = models.CharField(max_length=30)
     surname2 = models.CharField(max_length=30)
     email = models.EmailField()
-    type = models.ForeignKey(
-        UserType,
-        on_delete=models.CASCADE,
-        related_name='users'
-    )
+    type = models.ForeignKey(UserType,on_delete=models.CASCADE,related_name='users')
+    class Meta:
+        db_table = "users"
 
