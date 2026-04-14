@@ -5,10 +5,10 @@ from .models import Excavations
 from .serializers import ExcavationSerializer
 
 @api_view(['GET', 'POST'])
-def excavation(request):
+def excavation(request,userid):
     if request.method == 'GET':
         excavations = Excavations.objects.filter(
-            models.Q(owner=request.user) | models.Q(users=request.user)
+            models.Q(owner=userid) | models.Q(users=userid)
         ).distinct()
         serializer = ExcavationSerializer(excavations, many=True)
         return Response(serializer.data)
