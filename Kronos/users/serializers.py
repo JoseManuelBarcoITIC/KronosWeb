@@ -25,6 +25,10 @@ class UserListSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ['id','email', 'name', 'surname']
+class UserUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['name', 'surname', 'surname2']
 
 class MyTokenObtainPairSerializer(serializers.Serializer):
     email = serializers.EmailField()
