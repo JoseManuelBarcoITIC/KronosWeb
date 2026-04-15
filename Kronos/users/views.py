@@ -2,7 +2,7 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
 from .models import User
-from .serializers import UserSerializer,UserListSerializer,UserUpdateSerializer,MyTokenObtainPairSerializer
+from .serializers import UserSerializer,UserListSerializer,UserUpdateSerializer,UserCreateSerializer,MyTokenObtainPairSerializer
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import permission_classes
@@ -16,7 +16,7 @@ def users_list(request):
         return Response(serializer.data)
 
     elif request.method == 'POST':
-        serializer = UserSerializer(data=request.data)
+        serializer = UserCreateSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
