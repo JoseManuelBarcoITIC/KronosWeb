@@ -7,5 +7,5 @@ from django.urls import path,include
 
 
 urlpatterns = [
-    path('userlist/', views.excavation_list, name='users_list'),
+    path('excavationslist/', views.excavation_list, name='excavations_list'),
 ]
