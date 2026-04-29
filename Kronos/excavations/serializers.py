@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from .models import Excavations
-from KronosWeb.Kronos.users.models import User
+from users.models import User
 
 class ExcavationSerializer(serializers.ModelSerializer):
     owner = serializers.HiddenField(default=serializers.CurrentUserDefault())
@@ -15,19 +15,17 @@ class ExcavationSerializer(serializers.ModelSerializer):
         model = Excavations
         fields = '__all__'
 
-    def validate_users(self, users):
-        for user in users:
+    def validate_users(self, value): # 'value' es el estándar, pero 'users' funciona
+        for user in value:
             if not user.is_active:
                 raise serializers.ValidationError(
                     f"El usuario {user.id} no está activo"
                 )
-        return users
+        return value
 
     def create(self, validated_data):
         users = validated_data.pop('users', [])
-
         excavation = Excavations.objects.create(**validated_data)
         if users:
             excavation.users.set(users)
-
         return excavation
