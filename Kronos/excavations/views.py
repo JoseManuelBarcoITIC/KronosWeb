@@ -6,8 +6,6 @@ from django.db.models import Q
 from .models import Excavations, Sectors
 from .serializers import ExcavationSerializer, SectorSerializer
 
-
-
 @api_view(['GET', 'POST'])
 @permission_classes([IsAuthenticated])
 def excavation_list(request):
@@ -54,19 +52,38 @@ def excavation_detail(request, pk):
         return Response({"message": "Excavación desactivada"}, status=status.HTTP_204_NO_CONTENT)
 
 
+# --- ESTA ES LA FUNCIÓN QUE TE FALTABA ---
+@api_view(['GET', 'POST'])
+@permission_classes([IsAuthenticated])
+def sector_list(request):
+    if request.method == 'GET':
+        # Listamos solo los sectores de excavaciones donde el usuario participa
+        sectors = Sectors.objects.filter(
+            (Q(excavation__owner=request.user) | Q(excavation__users=request.user)) &
+            Q(is_active=True)
+        ).distinct()
+        serializer = SectorSerializer(sectors, many=True)
+        return Response(serializer.data)
+
+    elif request.method == 'POST':
+        serializer = SectorSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
 @api_view(['GET', 'PUT', 'PATCH', 'DELETE'])
 @permission_classes([IsAuthenticated])
 def sector_detail(request, pk):
     try:
         sector = Sectors.objects.get(pk=pk, is_active=True)
-
         excavation = sector.excavation
         if excavation.owner != request.user and request.user not in excavation.users.all():
             return Response(
                 {"error": "No tienes permiso para acceder a los sectores de esta excavación"},
                 status=status.HTTP_403_FORBIDDEN
             )
-
     except Sectors.DoesNotExist:
         return Response({"error": "Sector no encontrado"}, status=status.HTTP_404_NOT_FOUND)
 
