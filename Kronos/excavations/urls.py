@@ -6,7 +6,6 @@ from django.urls import path,include
 
 
 urlpatterns = [
-    # Rutas para Excavaciones
     path('excavations/', views.excavation_list, name='excavation-list'),
     path('excavations/<int:pk>/', views.excavation_detail, name='excavation-detail'),
 
