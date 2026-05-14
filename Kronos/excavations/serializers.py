@@ -15,9 +15,7 @@ class SectorSerializer(serializers.ModelSerializer):
 
 
 class ExcavationSerializer(serializers.ModelSerializer):
-    # Usar HiddenField requiere pasar el contexto 'request' (ya lo haces en la vista)
     owner = serializers.HiddenField(default=serializers.CurrentUserDefault())
-
     users = serializers.PrimaryKeyRelatedField(
         many=True,
         queryset=User.objects.filter(is_active=True),
@@ -26,8 +24,7 @@ class ExcavationSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Excavations
-        # Definimos los campos explícitamente en lugar de '__all__' para evitar atascos de DRF
-        fields = ['id', 'name', 'users', 'owner', 'is_active']
+        fields = ['id', 'name', 'users', 'owner', 'is_active', 'estatExcavacio']
         read_only_fields = ['id', 'is_active']
 
     def validate_users(self, value):
@@ -39,20 +36,17 @@ class ExcavationSerializer(serializers.ModelSerializer):
         return value
 
     def create(self, validated_data):
-        # Extraemos los IDs de los usuarios asignados
         users = validated_data.pop('users', [])
 
-        # El validated_data ya contiene el 'owner' gracias al HiddenField
-        excavation = Excavations.objects.create(**validated_data)
+        excavation = Excavations.objects.create(estatExcavacio='Activa', **validated_data)
 
-        # Guardamos la relación ManyToMany una vez el yacimiento tiene ID
         if users:
             excavation.users.set(users)
 
         return excavation
 
     def to_representation(self, instance):
-    git
+
         representation = super().to_representation(instance)
         representation['owner'] = instance.owner.id if instance.owner else None
         return representation
