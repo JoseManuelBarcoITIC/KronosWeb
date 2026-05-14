@@ -6,6 +6,7 @@ from django.db.models import Q
 from .models import Excavations, Sectors
 from .serializers import ExcavationSerializer, SectorSerializer
 
+
 @api_view(['GET', 'POST'])
 @permission_classes([IsAuthenticated])
 def excavation_list(request):
@@ -16,14 +17,13 @@ def excavation_list(request):
         ).distinct()
         serializer = ExcavationSerializer(excavations, many=True)
         return Response(serializer.data)
-
     elif request.method == 'POST':
         serializer = ExcavationSerializer(data=request.data, context={'request': request})
         if serializer.is_valid():
-            serializer.save(owner=user)
+            serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 @api_view(['GET', 'PUT', 'PATCH', 'DELETE'])
 @permission_classes([IsAuthenticated])

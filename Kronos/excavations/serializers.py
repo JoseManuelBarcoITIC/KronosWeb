@@ -13,6 +13,7 @@ class SectorSerializer(serializers.ModelSerializer):
 
 class ExcavationSerializer(serializers.ModelSerializer):
     owner = serializers.HiddenField(default=serializers.CurrentUserDefault())
+
     users = serializers.PrimaryKeyRelatedField(
         many=True,
         queryset=User.objects.filter(is_active=True),
@@ -33,7 +34,10 @@ class ExcavationSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         users = validated_data.pop('users', [])
+
         excavation = Excavations.objects.create(**validated_data)
+
         if users:
             excavation.users.set(users)
+
         return excavation
