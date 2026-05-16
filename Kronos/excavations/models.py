@@ -1,11 +1,11 @@
 from django.db import models
 
-class Excavations(models.Model):
+class Excavations(models.Model):  # Se llama Excavations
     name = models.CharField(max_length=30)
     owner = models.ForeignKey(
         "users.User",
         on_delete=models.CASCADE,
-        related_name="owned_excavations" # Nombre de relación más claro
+        related_name="owned_excavations"
     )
     users = models.ManyToManyField(
         "users.User",

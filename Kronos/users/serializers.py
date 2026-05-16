@@ -1,30 +1,18 @@
-from .models import UserType
 from rest_framework import serializers
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth import authenticate
 from .models import User
 from django.contrib.auth.hashers import check_password
 
-class UserTypeSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = UserType
-        fields = '__all__'
-
 class UserSerializer(serializers.ModelSerializer):
-    type = UserTypeSerializer(read_only=True)
-    type_id = serializers.PrimaryKeyRelatedField(
-        queryset=UserType.objects.all(),
-        source='type',
-        write_only=True
-    )
     class Meta:
         model = User
-        fields = ['id', 'name', 'password','surname', 'surname2', 'email', 'type', 'type_id']
+        fields = ['id', 'name', 'password', 'surname', 'surname2', 'email', 'is_staff', 'is_superuser']
 
 class UserListSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['id','email', 'name', 'surname']
+        fields = ['id', 'email', 'name', 'surname']
 
 class UserUpdateSerializer(serializers.ModelSerializer):
     class Meta:
@@ -34,15 +22,13 @@ class UserUpdateSerializer(serializers.ModelSerializer):
 class UserCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['email', 'name', 'surname', 'surname2', 'password','type']
+        fields = ['email', 'name', 'surname', 'surname2', 'password'] # Quitamos 'type' de aquí
 
     def create(self, validated_data):
         password = validated_data.pop('password')
-
         user = User(**validated_data)
         user.set_password(password)
         user.save()
-
         return user
 
 class MyTokenObtainPairSerializer(serializers.Serializer):
@@ -70,6 +56,6 @@ class MyTokenObtainPairSerializer(serializers.Serializer):
                 'id': user.id,
                 'email': user.email,
                 'is_staff': user.is_staff,
-                'type': user.type.name
+                'is_superuser': user.is_superuser
             }
         }

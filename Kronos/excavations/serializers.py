@@ -2,7 +2,6 @@ from rest_framework import serializers
 from django.contrib.auth import get_user_model
 from .models import Excavations, Sectors
 
-# Detecta el modelo de usuario correcto de tu sistema dinámicamente
 User = get_user_model()
 
 
@@ -24,7 +23,8 @@ class ExcavationSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Excavations
-        fields = ['id', 'name', 'users', 'owner', 'is_active', 'estatExcavacio']
+        # ❌ Eliminado 'estatExcavacio' de los fields
+        fields = ['id', 'name', 'users', 'owner', 'is_active']
         read_only_fields = ['id', 'is_active']
 
     def validate_users(self, value):
@@ -37,8 +37,7 @@ class ExcavationSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         users = validated_data.pop('users', [])
-
-        excavation = Excavations.objects.create(estatExcavacio='Activa', **validated_data)
+        excavation = Excavations.objects.create(**validated_data)
 
         if users:
             excavation.users.set(users)
@@ -46,7 +45,6 @@ class ExcavationSerializer(serializers.ModelSerializer):
         return excavation
 
     def to_representation(self, instance):
-
         representation = super().to_representation(instance)
         representation['owner'] = instance.owner.id if instance.owner else None
         return representation
