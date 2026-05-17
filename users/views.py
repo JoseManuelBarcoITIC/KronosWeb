@@ -1,13 +1,20 @@
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 from rest_framework import status
-from .models import User
-from .serializers import UserSerializer,UserListSerializer,UserUpdateSerializer,UserCreateSerializer,MyTokenObtainPairSerializer
-from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework.permissions import IsAuthenticated
-from rest_framework.decorators import permission_classes
+from rest_framework_simplejwt.views import TokenObtainPairView
+
+from .models import User
+from .serializers import (
+    UserSerializer,
+    UserListSerializer,
+    UserUpdateSerializer,
+    UserCreateSerializer,
+    MyTokenObtainPairSerializer
+)
 
 @api_view(['GET', 'POST'])
+@permission_classes([IsAuthenticated]) # 🔒 Protegemos la lista y la creación también
 def users_list(request):
     if request.method == 'GET':
         users = User.objects.all()
@@ -21,8 +28,9 @@ def users_list(request):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+
 @api_view(['GET', 'PUT', 'DELETE'])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsAuthenticated]) # 🔒 Mantiene la protección para detalles/cambios
 def user_detail(request, pk):
     try:
         user = User.objects.get(pk=pk)
@@ -34,10 +42,12 @@ def user_detail(request, pk):
         return Response(serializer.data)
 
     elif request.method == 'PUT':
+        # Tu lógica original con partial=True ya era perfecta para asimilar
+        # que el frontend no envíe la contraseña si va vacía.
         serializer = UserUpdateSerializer(user, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
-            return Response(serializer.data)
+            return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     elif request.method == 'DELETE':
