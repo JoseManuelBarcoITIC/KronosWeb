@@ -42,8 +42,6 @@ def user_detail(request, pk):
         return Response(serializer.data)
 
     elif request.method == 'PUT':
-        # Tu lógica original con partial=True ya era perfecta para asimilar
-        # que el frontend no envíe la contraseña si va vacía.
         serializer = UserUpdateSerializer(user, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()

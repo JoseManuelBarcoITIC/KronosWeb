@@ -3,8 +3,8 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from django.db.models import Q
-from .models import Excavations, Sectors
-from .serializers import ExcavationSerializer, SectorSerializer
+from .models import Excavations, Sectors, StratigraphicUnit
+from .serializers import ExcavationSerializer, SectorSerializer, StratigraphicUnitSerializer
 
 
 
@@ -115,5 +115,63 @@ def sector_detail(request, pk):
         sector.save()
         return Response(
             {"message": "Sector desactivado correctamente"},
+            status=status.HTTP_204_NO_CONTENT
+        )
+
+@api_view(['GET', 'POST'])
+@permission_classes([IsAuthenticated])
+def stratigraphic_unit_list(request):
+    if request.method == 'GET':
+        units = StratigraphicUnit.objects.filter(
+            (Q(sector__excavation__owner=request.user) | Q(sector__excavation__users=request.user)) &
+            Q(is_active=True)
+        ).distinct()
+        serializer = StratigraphicUnitSerializer(units, many=True)
+        return Response(serializer.data)
+
+    elif request.method == 'POST':
+        serializer = StratigraphicUnitSerializer(data=request.data)
+        if serializer.is_valid():
+            sector = serializer.validated_data['sector']
+            if sector.excavation.owner != request.user and request.user not in sector.excavation.users.all():
+                return Response(
+                    {"error": "No tienes permiso para añadir unidades a este sector"},
+                    status=status.HTTP_403_FORBIDDEN
+                )
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(['GET', 'PUT', 'PATCH', 'DELETE'])
+@permission_classes([IsAuthenticated])
+def stratigraphic_unit_detail(request, pk):
+    try:
+        unit = StratigraphicUnit.objects.get(pk=pk, is_active=True)
+        excavation = unit.sector.excavation
+        if excavation.owner != request.user and request.user not in excavation.users.all():
+            return Response(
+                {"error": "No tienes permiso para acceder a esta unidad estratigráfica"},
+                status=status.HTTP_403_FORBIDDEN
+            )
+    except StratigraphicUnit.DoesNotExist:
+        return Response({"error": "Unidad estratigráfica no encontrada"}, status=status.HTTP_404_NOT_FOUND)
+
+    if request.method == 'GET':
+        serializer = StratigraphicUnitSerializer(unit)
+        return Response(serializer.data)
+
+    elif request.method in ['PUT', 'PATCH']:
+        serializer = StratigraphicUnitSerializer(unit, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    elif request.method == 'DELETE':
+        unit.is_active = False
+        unit.save()
+        return Response(
+            {"message": "Unidad estratigráfica desactivada correctamente"},
             status=status.HTTP_204_NO_CONTENT
         )
