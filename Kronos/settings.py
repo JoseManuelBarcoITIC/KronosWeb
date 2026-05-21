@@ -37,6 +37,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'corsheaders',
     'rest_framework_simplejwt.token_blacklist',
     'users.apps.UsersConfig',
     'excavations.apps.ExcavationsConfig',
@@ -170,3 +171,7 @@ CORS_ALLOW_METHODS = [
     "POST",
     "PUT",
 ]
+
+MEDIA_URL = '/media/'
+
+MEDIA_ROOT = BASE_DIR / 'media'
