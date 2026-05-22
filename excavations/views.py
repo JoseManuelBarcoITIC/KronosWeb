@@ -1,4 +1,3 @@
-import json
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 from rest_framework import status
@@ -6,6 +5,7 @@ from rest_framework.permissions import IsAuthenticated
 from django.db.models import Q
 from .models import Excavations, Sectors, StratigraphicUnit
 from .serializers import ExcavationSerializer, SectorSerializer, StratigraphicUnitSerializer
+
 
 
 @api_view(['GET', 'POST'])
@@ -29,7 +29,7 @@ def excavation_list(request):
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         except Exception as database_error:
             return Response(
-                {"error_internal_django": str(database_error)},
+                {"error_interno_django": str(database_error)},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
 
@@ -65,7 +65,6 @@ def excavation_detail(request, pk):
         excavation.is_active = False
         excavation.save()
         return Response({"message": "Excavación desactivada correctamente"}, status=status.HTTP_204_NO_CONTENT)
-
 
 @api_view(['GET', 'POST'])
 @permission_classes([IsAuthenticated])
@@ -119,7 +118,6 @@ def sector_detail(request, pk):
             status=status.HTTP_204_NO_CONTENT
         )
 
-
 @api_view(['GET', 'POST'])
 @permission_classes([IsAuthenticated])
 def stratigraphic_unit_list(request):
@@ -132,14 +130,7 @@ def stratigraphic_unit_list(request):
         return Response(serializer.data)
 
     elif request.method == 'POST':
-        payload = request.data.copy() if hasattr(request.data, 'copy') else dict(request.data)
-        if 'relations' in payload and isinstance(payload['relations'], str):
-            try:
-                payload['relations'] = json.loads(payload['relations'])
-            except ValueError:
-                payload['relations'] = []
-
-        serializer = StratigraphicUnitSerializer(data=payload)
+        serializer = StratigraphicUnitSerializer(data=request.data)
         if serializer.is_valid():
             sector = serializer.validated_data['sector']
             if sector.excavation.owner != request.user and request.user not in sector.excavation.users.all():
@@ -171,14 +162,7 @@ def stratigraphic_unit_detail(request, pk):
         return Response(serializer.data)
 
     elif request.method in ['PUT', 'PATCH']:
-        payload = request.data.copy() if hasattr(request.data, 'copy') else dict(request.data)
-        if 'relations' in payload and isinstance(payload['relations'], str):
-            try:
-                payload['relations'] = json.loads(payload['relations'])
-            except ValueError:
-                payload['relations'] = []
-
-        serializer = StratigraphicUnitSerializer(unit, data=payload, partial=True)
+        serializer = StratigraphicUnitSerializer(unit, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
